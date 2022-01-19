@@ -11,6 +11,7 @@ import os.path
 from argparse import ArgumentParser
 import time
 import sys
+from itertools import cycle
 
 # This package contains various machine learning algorithms
 import sklearn
@@ -19,7 +20,8 @@ from sklearn.neural_network import MLPClassifier
 import joblib
 
 from bots.rand import rand
-# from bots.rdeep import rdeep
+from bots.rdeep import rdeep
+from bots.bully import bully
 
 from bots.ml.ml import features
 
@@ -34,7 +36,7 @@ def create_dataset(path, player=rand.Bot(), games=2000, phase=1):
 
     Keyword arguments
     path -- the pathname where the dataset is to be stored
-    player -- the player which will play against itself, default the rand Bot
+    player -- the player which will play against itself, default the rand Bot, if list of players given, will cycle through player in the list
     games -- the number of games to play, default 2000
     phase -- wheter to start the games in phase 1, the default, or phase 2
     """ 
@@ -45,6 +47,13 @@ def create_dataset(path, player=rand.Bot(), games=2000, phase=1):
     # For progress bar
     bar_length = 30
     start = time.time()
+
+    multiple_bots = False
+
+    if isinstance(player,list):
+        multiple_bots = True
+        player = cycle(player)
+
 
     for g in range(games-1):
 
@@ -69,7 +78,10 @@ def create_dataset(path, player=rand.Bot(), games=2000, phase=1):
             state_vectors.append(features(given_state))
 
             # Advance to the next state
-            move = player.get_move(given_state)
+            if multiple_bots:
+                move = next(player).get_move(given_state)
+            else:
+                move = player.get_move(given_state)
             state = state.next(move)
 
         winner, score = state.winner()
@@ -121,7 +133,7 @@ parser.add_argument("--no-train",
 options = parser.parse_args()
 
 if options.overwrite or not os.path.isfile(options.dset_path):
-    create_dataset(options.dset_path, player=rand.Bot(), games=10000)
+    create_dataset(options.dset_path, player=[rand.Bot(),rdeep.Bot(),bully.Bot()], games=10000)
 
 if options.train:
 
