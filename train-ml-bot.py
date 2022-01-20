@@ -52,7 +52,7 @@ def create_dataset(path, player=rand.Bot(), games=2000, phase=1):
 
     if isinstance(player,list):
         multiple_bots = True
-        player = cycle(player)
+        player_list = cycle(player)
 
 
     for g in range(games-1):
@@ -69,6 +69,9 @@ def create_dataset(path, player=rand.Bot(), games=2000, phase=1):
 
         state_vectors = []
 
+        if multiple_bots:
+            player = next(player_list)
+
         while not state.finished():
 
             # Give the state a signature if in phase 1, obscuring information that a player shouldn't see.
@@ -78,10 +81,7 @@ def create_dataset(path, player=rand.Bot(), games=2000, phase=1):
             state_vectors.append(features(given_state))
 
             # Advance to the next state
-            if multiple_bots:
-                move = next(player).get_move(given_state)
-            else:
-                move = player.get_move(given_state)
+            move = player.get_move(given_state)
             state = state.next(move)
 
         winner, score = state.winner()
