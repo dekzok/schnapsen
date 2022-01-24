@@ -144,7 +144,8 @@ if options.train:
     # The following tuple specifies the number of hidden layers in the neural
     # network, as well as the number of layers, implicitly through its length.
     # You can set any number of hidden layers, even just one. Experiment and see what works.
-    hidden_layer_sizes = (64, 32)
+    number_of_layers_list = [1, 2, 3, 4]
+    hidden_layer_sizes_list= [128, 64, 32, 16]
 
     # The learning rate determines how fast we move towards the optimal solution.
     # A low learning rate will converge slowly, but a large one might overshoot.
@@ -154,32 +155,42 @@ if options.train:
     regularization_strength = 0.0001
 
     #############################################
+    loop_start = time.time()
+    for n_layers in number_of_layers_list:
+        for size in hidden_layer_sizes_list:
 
-    start = time.time()
+            start = time.time()
 
-    print("Starting training phase...")
+            model_path = "model" + str(n_layers) + "x" + str(size) + ".pkl"
 
-    with open(options.dset_path, 'rb') as output:
-        data, target = pickle.load(output)
+            print(f"Starting {model_path} training phase...")
 
-    # Train a neural network
-    learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate, alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
-    # learner = sklearn.linear_model.LogisticRegression()
+            with open(options.dset_path, 'rb') as output:
+                data, target = pickle.load(output)
 
-    model = learner.fit(data, target)
+            hidden_layer_sizes = [size for _ in range(n_layers)]
 
-    # Check for class imbalance
-    count = {}
-    for t in target:
-        if t not in count:
-            count[t] = 0
-        count[t] += 1
+            # Train a neural network
+            learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate, alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
+            # learner = sklearn.linear_model.LogisticRegression()
 
-    print('instances per class: {}'.format(count))
+            model = learner.fit(data, target)
 
-    # Store the model in the ml directory
-    joblib.dump(model, "./bots/ml/" + options.model_path)
+            # Check for class imbalances
+            count = {}
+            for t in target:
+                if t not in count:
+                    count[t] = 0
+                count[t] += 1
 
-    end = time.time()
+            print('instances per class: {}'.format(count))
 
-    print('Done. Time to train:', (end-start)/60, 'minutes.')
+            # Store the model in the ml directory
+            joblib.dump(model, "./bots/ml/" + model_path)
+
+            end = time.time()
+
+            print(f'Done. Time to train {model_path} :', (end-start)/60, 'minutes.')
+
+    loop_end = time.time()
+    print('Done. Time to train all models:', (loop_end-loop_start)/60, 'minutes.')
