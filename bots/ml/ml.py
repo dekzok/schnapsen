@@ -16,11 +16,11 @@ DEFAULT_MODEL = os.path.dirname(os.path.realpath(__file__)) + '/model.pkl'
 
 class Bot:
 
-    __randomize = True
+    __randomize = False
 
     __model = None
 
-    def __init__(self, randomize=True, model_file=DEFAULT_MODEL):
+    def __init__(self, randomize=False, model_file=DEFAULT_MODEL):
 
         print(model_file)
         self.__randomize = randomize

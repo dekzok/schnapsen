@@ -9,6 +9,7 @@ RdeepBot - This bot looks ahead by following a random path down the game tree. T
 from api import State, util
 import random
 
+random.seed(0)
 
 class Bot:
 
